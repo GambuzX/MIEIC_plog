@@ -95,7 +95,6 @@ noEdge540Pilots(Pilot) :-
     \+ plane(Pilot, 'Edge540').
 
 /*
-
 Answers to exercises:
 
 a) playerWon(Player, 'Porto').
@@ -103,5 +102,4 @@ b) teamWon(Team, 'Porto').
 c) wonManyCircuits(Pilot).
 d) bigCircuit(Circuit).
 e) noEdge540Pilots(Pilot).
-
 */
