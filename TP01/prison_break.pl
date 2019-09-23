@@ -45,3 +45,8 @@ Finds childs of parent.
 */
 childs(Parent, Child) :-
     parent(Parent, Child).
+
+/*
+a) parents('Michael Scofield', Dad, Mom).
+b) childs('Aldo Burrows', Child).
+*/
