@@ -24,9 +24,9 @@ pessoas_da_universidade(X, Pessoa) :-
     funcionario(Pessoa, X).
 
 colegas(P1, P2) :-
-    P1 \= P2 ,
     (
         aluno(P1, Cadeira), aluno(P2, Cadeira) ;
         frequenta(P1, Faculdade), frequenta(P2, Faculdade) ;
         funcionario(P1, Faculdade), funcionario(P2, Faculdade)        
-    ).
+    ),
+    P1 \= P2.
