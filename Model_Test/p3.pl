@@ -1,25 +1,29 @@
 :- include('db.pl').
 
-didNotPress(1, [Curr | _]) :- Curr = 120.
-didNotPress(JuriMember, [Curr | Rest]) :-
-    JuriMember >= 1,
-    N is JuriMember-1,
-    didNotPress(N, Rest).
+wasPatient(1, [120 | _]).
+wasPatient(Juri, [_ | Rest]) :- 
+    NextJuri is Juri-1,
+    wasPatient(NextJuri, Rest).
 
-findPerson(P, [P|_]).
-findPerson(P, [H | T]) :- findPerson(P, T).
+countPatienceHelper(JuriMember, Res, Seen) :-
+    participant(Part, _, _),
+    \+member(Part, Seen),    
+    append([Part], Seen, NewSeen),
 
-countPatience(_, 0, _).
-countPatience(JuriMember, Patience, Seen) :-
-    performance(P, PerfList),
-    \=findPerson(P, Seen),
+    countPatienceHelper(JuriMember, RecursiveRes, NewSeen),
+
     (
-        didNotPress(JuriMember, PerfList), NewPatience is Patience+1;
-        NewPatience is Patience 
-    ),
-    countPatience(JuriMember, NewPatience, [P | Seen]).
+        performance(Part, Performances),
+        wasPatient(JuriMember, Performances),
+        Res is RecursiveRes+1;
+        Res is RecursiveRes
+    ),!.
+
+countPatienceHelper(_, 0, _) :- !.
+
+countPatience(JuriMember, Res) :-
+    countPatienceHelper(JuriMember, Res, []).
 
 patientJuri(JuriMember) :-
-    performance(_, P),
-    countPatience(JuriMember, P, []),
+    countPatience(JuriMember, P),
     P >= 2.
