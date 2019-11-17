@@ -102,3 +102,75 @@ findOtherBestPlayers([TargetRatio - User | RestPlayers], TargetRatio, [User | Be
 findOtherBestPlayers([_ | RestPlayers], TargetRatio, BestPlayers) :-
     findOtherBestPlayers(RestPlayers, TargetRatio, BestPlayers), !.
 
+
+exampleMatrix(M) :-
+    M = [
+            8,
+            8, 2,
+            7, 4, 3,
+            7, 4, 3, 1
+        ].
+
+areClose(MaxDist, DistMatrix, Pairs) :-
+    findall(Obj1/Obj2, (genVal(DistMatrix, 0, Obj2), genVal(DistMatrix, Obj2, Obj1), mdistance(DistMatrix, Obj1, Obj2, Dist), Dist =< MaxDist), Pairs).
+
+genVal(DistMatrix, Start, Out) :-
+    length(DistMatrix, N),
+    SqrtInner is (1 - (4 * 1 * (-2 * N))),
+    MaxRow is (-1 + sqrt(SqrtInner)) / 2,
+    MaxVal is MaxRow+1,
+    StartN is Start+1,
+    genValTill(StartN, MaxVal, Out).
+
+genValTill(Max, Max, Max) :- !.
+genValTill(Curr, Max, Curr) :- Curr =< Max.
+genValTill(Curr, Max, Out) :-
+    Curr =< Max,
+    Next is Curr+1,
+    genValTill(Next, Max, Out).
+
+mdistance(DistMatrix, I1, I2, Dist) :-
+    I1 \= I2,
+    (
+        I1 > I2, Iter1 = I1, Iter2 = I2;
+        Iter1 = I2, Iter2 = I1
+    ), !,
+
+    Row is Iter1 - 2,
+    Col is Iter2,
+    Nf is (Row * (Row+1))/2 + Col,
+    N is integer(Nf),
+    nth1(N, DistMatrix, Dist).
+
+
+
+exampleDendogram(D) :-
+    D = [1, [2, [5, [7, [8, australia, [9, [10, stahelena, anguila], georgiadosul]], reinounido], [6, servia, franca]], [3, [4, niger, india], irlanda]], brasil].
+
+distance(Obj1, Obj2, Dendogram, Dist) :-
+    findall(Height, (genNode(Dendogram, Node), commonAncestor(Node, Obj1, Obj2), height(Node, Height)), HeightList),
+    sort(HeightList, SortedList),
+    [Dist | _] = SortedList.
+
+genNode(Node, Node) :- is_list(Node).
+genNode([_, Left, _], Node) :- genNode(Left, Node).
+genNode([_, _, Right], Node) :- genNode(Right, Node).
+
+commonAncestor(Node, Obj1, Obj2) :-
+    findObjInChildren(Node, Obj1),
+    findObjInChildren(Node, Obj2).
+
+findObjInChildren(Target, Target) :- !.
+findObjInChildren([_, Left, _], Target) :- findObjInChildren(Left, Target).
+findObjInChildren([_, _, Right], Target) :- findObjInChildren(Right, Target).
+
+height(Node, Height) :-
+    heightaux(Node, 0, Height).
+
+heightaux(Node, CurrHeight, CurrHeight) :- \+is_list(Node), !.
+heightaux([_, Left, Right], PrevHeight, Res) :-
+    CurrHeight is PrevHeight+1,
+    heightaux(Left, CurrHeight, LeftHeight),
+    heightaux(Right, CurrHeight, RightHeight),
+    max_member(Res, [LeftHeight, RightHeight]).
+
