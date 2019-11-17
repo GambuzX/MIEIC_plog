@@ -1,3 +1,6 @@
+:- use_module(library(lists)).
+:- use_module(library(sets)).
+
 %airport(Name, ICAO, Country)
 airport('Aeroporto Francisco Sá Carneiro', 'LPPR', 'Portugal').
 airport('Aeroporto Humberto Delgado', 'LPPT', 'Portugal').
@@ -101,3 +104,34 @@ tripDays([Orig, Dest | Rest], Time, [DepartureTime | FlightTimes], Days) :-
         Days is RemainingDays
     ), !.
 
+
+avgFlightLengthFromAirport(Airport, AvgLength) :-
+    findall(Duration, (flight(_, Airport, _, _, Duration, _)), Durations),
+    sumlist(Durations, DurSum),
+    length(Durations, Ndurations),
+    AvgLength is DurSum / Ndurations.
+
+
+mostInternational(Companies) :-
+    findall(Count, (company(Company, _, _, _), supportedCompanyCountries(Company, Count)), Counts),
+    sort(Counts, Sorted),
+    reverse(Sorted, Reversed),
+    [MaxCount | _] = Reversed,
+    findall(Company, (company(Company, _, _, _), supportedCompanyCountries(Company, MaxCount)), Companies).
+
+supportedCompanyCountries(Company, Count) :-
+    findall(Country, (flight(_, Orig, _, _, _, Company), airport(_, Orig, Country)), OriginCountries),
+    findall(Country, (flight(_, _, Dest, _, _, Company), airport(_, Dest, Country)), DestCountries),
+    append(OriginCountries, DestCountries, AllCountries),
+    list_to_set(AllCountries, NoDups),
+    length(NoDups, Count).
+
+
+dif_max_2(X,Y) :- X < Y, X >= Y-2.
+
+make_pairs([], _, []) :- !.
+make_pairs(List, Predicate, [Ele1 - Ele2 | Rest]) :-
+    select(Ele1, List, List2),
+    select(Ele2, List2, List3),
+    G =.. [Predicate, Ele1, Ele2], G,
+    make_pairs(List3, Predicate, Rest).
