@@ -1,3 +1,4 @@
+:-use_module(library(clpfd)).
 
 turkey(Price, Total) :-
     Vars = [D1, D2],
