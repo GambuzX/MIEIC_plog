@@ -51,6 +51,25 @@ exactly(X, [Y|L], N) :-
 get_locations([], [], []).
 get_locations([Name-_-_ | Concelhos], [1 | Rest], [Name | RestVisited]) :-
     get_locations(Concelhos, Rest, RestVisited).
-get_locations([Name-_-_ | Concelhos], [0 | Rest], Visited) :-
+get_locations([_ | Concelhos], [0 | Rest], Visited) :-
     get_locations(Concelhos, Rest, Visited).
 
+
+
+ups_and_downs(Min, Max, N, L) :-
+    length(L, N),
+    domain(L, Min, Max),
+
+    oscillate_values(L),
+    labeling([], L).
+
+oscillate_values([V1, V2]) :-
+    V1 #\= V2.
+
+oscillate_values([V1, V2, V3 | Rest]) :-
+
+    (V1 #> V2 #/\ V3 #> V2) #\/
+    (V1 #< V2 #/\ V3 #< V2),
+
+
+    oscillate_values([V2, V3 | Rest]).
