@@ -25,44 +25,50 @@ fill_pairs(Iter, [Gurl | RestGurls], [Iter-Gurl | RestPairs]) :-
     fill_pairs(Next, RestGurls, RestPairs).
 
 
+
 optimal_skating_pairs(MenHeights, WomenHeights, Delta, Pairs) :-
+    length(MenHeights, NMens),
+    length(WomenHeights, NWomen),
 
-    find_gurls_v2(1, MenHeights, WomenHeights, Delta, Pairs),
-    extract_gurl_indexes(Pairs, GurlsIndexes),
-    all_distinct(GurlsIndexes),
-
-    length(GurlsIndexes, N),
-    labeling([maximize(N)], GurlsIndexes).
-
+    length(MenPairs, NMens),
+    domain(MenPairs, 0, NWomen),
     
-find_gurls_v2(_, [], _, _, []).
-find_gurls_v2(Iter, [MenHeight | RestMens], Gurls, Delta, [Iter-CurrGurlI | RestGurls]) :-
-    element(CurrGurlI, Gurls, CurrGurlHeight),
-    Diff #= MenHeight - CurrGurlHeight,
-    Diff #>= 0 #/\ Diff #< Delta,
-    Next is Iter+1,
-    find_gurls_v2(Next, RestMens, Gurls, Delta, RestGurls).
-find_gurls_v2(Iter, [_ | RestMens], Gurls, Delta, RestGurlsI) :-
-    Next is Iter+1,
-    find_gurls_v2(Next, RestMens, Gurls, Delta, RestGurlsI).
+    % each women index can only appear 0 or 1 times
+    BaseCardinality = [0-X],
+    domain([X], 0, NMens),
+    define_cardinality(BaseCardinality, 1, WomenHeights, Cardinality),
+    global_cardinality(MenPairs, Cardinality),
 
+    count_valid_pairs(MenPairs, MenHeights, WomenHeights, Delta, Total),
 
-count_found_pairs(Rest, 0).
-count_found_pairs([Curr | Rest], Total) :-
-    Curr #> 0 #<=> Valid,
+    labeling([maximize(Total)], MenPairs),
+    
+    build_pairs(1, MenPairs, Pairs).
+
+count_valid_pairs([], [], _, _, 0).
+count_valid_pairs([CurrPair | Pairs], [MenHeight | Mens], WomenHeights, Delta, Total) :-
+    element(CurrI, WomenHeights, WomenHeight),
+    (
+        CurrPair #> 0 #/\
+        CurrI #= CurrPair #/\
+        MenHeight #>= WomenHeight #/\
+        MenHeight - WomenHeight #< Delta
+    ) #<=> Valid,
     Total #= NextTotal + Valid,
-    count_found_pairs(Rest, NextTotal).
+    count_valid_pairs(Pairs, Mens, WomenHeights, Delta, NextTotal).
 
-fill_pairs_v2(_, [], []).
-fill_pairs_v2(Iter, [Gurl | RestGurls], [Iter-Gurl | RestPairs]) :-
-    Gurl > 0,
+define_cardinality(Card, _, [], Card).
+define_cardinality(Base, Iter, [_ | Rest], New) :-
+    append(Base, [Iter-X], TempCard),
+    domain([X], 0, 1),
     Next is Iter+1,
-    fill_pairs_v2(Next, RestGurls, RestPairs).
-fill_pairs_v2(Iter, [Gurl | RestGurls], RestPairs) :-
-    Gurl < 0,
-    Next is Iter+1,
-    fill_pairs_v2(Next, RestGurls, RestPairs).
+    define_cardinality(TempCard, Next, Rest, New).
 
-extract_gurl_indexes([], []).
-extract_gurl_indexes([_-Gurl | Rest], [Gurl | RestI]) :-
-    extract_gurl_indexes(Rest, RestI).
+build_pairs(_, [], []).
+build_pairs(Iter, [0 | Rest], RestPairs) :-
+    Next is Iter+1,
+    build_pairs(Next, Rest, RestPairs).
+build_pairs(Iter, [Women | Rest], [Iter-Women | RestPairs]) :-
+    Women \= 0,
+    Next is Iter+1,
+    build_pairs(Next, Rest, RestPairs).
