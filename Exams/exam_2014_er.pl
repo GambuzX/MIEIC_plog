@@ -105,3 +105,11 @@ p(X,Y,[Y|P],D) :-
 p(X,Y,[Y],D) :- 
     \+ precedence(X,Y,_), 
     task(X,Y,_,D).
+
+
+table6(L) :-
+    Position = [Asd, Ber, Cris, Dem, Ele, Fel],
+    domain(Positions, 1, 6),
+    all_distinct(Positions),
+
+    Ber #= (Asd + 1) mod 6 + 1 #\/ Ber #= (Asd - 1) mod 6 + 1.
